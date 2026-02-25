@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>For You 💙</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;}
+
+body{
+height:100vh;
+overflow:hidden;
+background: radial-gradient(circle at top,#e0f7ff,#f3e8ff,#ffffff);
+}
+
+.slide{
+position:absolute;
+width:100%;
+height:100%;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+}
+
+/* ========= SLIDE 1 ========= */
+#slide1{
+background: linear-gradient(135deg,#dbeafe,#ede9fe,#fce7f3);
+}
+
+#board{
+display:grid;
+grid-template-columns:repeat(3,100px);
+gap:8px;
+margin-top:20px;
+}
+
+.cell{
+width:100px;
+height:100px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+border-radius:18px;
+background: rgba(255,255,255,0.6);
+backdrop-filter: blur(10px);
+color:#4f46e5;
+cursor:pointer;
+transition:0.2s;
+}
+
+.cell:hover{transform:scale(1.05);}
+.empty{background:transparent;cursor:default;}
+
+h2{color:#4338ca;}
+
+/* ========= SLIDE 2 ========= */
+#slide2{
+display:none;
+background: linear-gradient(135deg,#e0f2fe,#ede9fe);
+}
+
+#slide2 img{
+width:260px;
+border-radius:25px;
+box-shadow:0 15px 35px rgba(0,0,0,0.15);
+animation:zoom 1.2s ease;
+}
+
+@keyframes zoom{
+from{transform:scale(0.7);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+button{
+margin-top:20px;
+padding:10px 25px;
+border:none;
+border-radius:25px;
+background:#6366f1;
+color:white;
+cursor:pointer;
+font-size:15px;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+background:#4f46e5;
+}
+
+#message{
+margin-top:20px;
+display:none;
+font-size:18px;
+text-align:center;
+padding:0 20px;
+color:#4c1d95;
+line-height:1.5;
+}
+
+#nextBtn{display:none;}
+
+/* ========= SLIDE 3 ========= */
+#slide3{
+display:none;
+background:black;
+position:relative;
+}
+
+#slide3 video{
+width:100%;
+height:auto;
+max-height:100vh;
+object-fit:contain;
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+}
+
+/* CONFETTI */
+@keyframes fall{
+to{
+transform:translateY(110vh) rotate(720deg);
+opacity:0;
+}
+}
+
+@keyframes pop{
+from{transform:scale(0);}
+to{transform:scale(1);}
+}
+</style>
+</head>
+
+<body>
+
+<!-- SLIDE 1 -->
+<div class="slide" id="slide1">
+<h2>Geser Sampai Benar 💙</h2>
+<div id="board"></div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" id="slide2">
+<img src="foto.jpg">
+
+<button id="openBtn" onclick="openMessage()">Open</button>
+
+<div id="message">
+Terimakasih sudah mengucapkan gadis cantik ini 💙<br>
+Selamat Ulang Tahun 🎂✨
+</div>
+
+<button id="nextBtn" onclick="nextSlide()">Next</button>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" id="slide3">
+<video id="myVideo" src="video.mp4" autoplay loop></video>
+</div>
+
+<script>
+
+/* ===== PUZZLE ===== */
+let correct = ["2","6","0",
+               "2","2","0",
+               "0","8",""];
+
+let tiles = [...correct];
+shuffle();
+
+const board = document.getElementById("board");
+
+function shuffle(){
+for(let i=0;i<100;i++){
+let empty = tiles.indexOf("");
+let moves = getValidMoves(empty);
+let randMove = moves[Math.floor(Math.random()*moves.length)];
+[tiles[empty], tiles[randMove]] = [tiles[randMove], tiles[empty]];
+}
+}
+
+function getValidMoves(index){
+let moves=[];
+let row=Math.floor(index/3);
+let col=index%3;
+
+if(col>0) moves.push(index-1);
+if(col<2) moves.push(index+1);
+if(row>0) moves.push(index-3);
+if(row<2) moves.push(index+3);
+
+return moves;
+}
+
+function draw(){
+board.innerHTML="";
+tiles.forEach((num,i)=>{
+let div=document.createElement("div");
+div.className="cell";
+
+if(num===""){
+div.classList.add("empty");
+}else{
+div.innerText=num;
+div.onclick=()=>move(i,div);
+}
+
+board.appendChild(div);
+});
+}
+
+function playClick(){
+let audio=new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
+audio.play();
+}
+
+function move(index,element){
+let emptyIndex=tiles.indexOf("");
+
+if(getValidMoves(index).includes(emptyIndex)){
+playClick();
+
+element.style.transform="scale(0.9)";
+setTimeout(()=>{element.style.transform="scale(1)";},150);
+
+[tiles[index],tiles[emptyIndex]]=[tiles[emptyIndex],tiles[index]];
+draw();
+checkWin();
+}
+}
+
+function createConfetti(){
+for(let i=0;i<100;i++){
+let conf=document.createElement("div");
+conf.style.position="fixed";
+conf.style.width="8px";
+conf.style.height="8px";
+conf.style.background=`hsl(${Math.random()*360},100%,60%)`;
+conf.style.left=Math.random()*100+"vw";
+conf.style.top="-10px";
+conf.style.borderRadius="50%";
+conf.style.animation=`fall ${2+Math.random()*3}s linear forwards`;
+document.body.appendChild(conf);
+setTimeout(()=>conf.remove(),5000);
+}
+}
+
+function checkWin(){
+if(JSON.stringify(tiles)===JSON.stringify(correct)){
+
+let winText=document.createElement("h1");
+winText.innerText="Kamu Berhasil 💙✨";
+winText.style.position="absolute";
+winText.style.color="#4338ca";
+winText.style.fontSize="28px";
+winText.style.top="15%";
+winText.style.animation="pop 0.5s ease";
+document.body.appendChild(winText);
+
+createConfetti();
+
+setTimeout(()=>{
+document.getElementById("slide1").style.display="none";
+document.getElementById("slide2").style.display="flex";
+winText.remove();
+},2000);
+}
+}
+
+draw();
+
+/* ===== SLIDE 2 ===== */
+function openMessage(){
+document.getElementById("message").style.display="block";
+document.getElementById("nextBtn").style.display="inline-block";
+document.getElementById("openBtn").style.display="none";
+}
+
+function nextSlide(){
+document.getElementById("slide2").style.display="none";
+document.getElementById("slide3").style.display="flex";
+document.getElementById("myVideo").play();
+}
+
+</script>
+
+</body>
+</html>
